@@ -1,0 +1,8 @@
+:root{ --bg: #f6f7fb; }
+* { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+body { background: var(--bg); }
+.hover-lift { transition: transform .12s ease, box-shadow .12s ease; }
+.hover-lift:hover { transform: translateY(-2px); box-shadow: 0 0.75rem 1.5rem rgba(0,0,0,.08)!important; }
+.btn-chip { border: 1px solid rgba(0,0,0,.12); background: white; }
+.btn-chip.active { background: #0d6efd; border-color: #0d6efd; color: white; }
+.clamp-3 { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }

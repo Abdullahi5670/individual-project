@@ -1,0 +1,118 @@
+<!doctype html>
+<html>
+<head>
+  <%- include('../partials/head') %>
+  <title>Sessions</title>
+</head>
+<body>
+  <%- include('../partials/nav', { user }) %>
+
+  <main class="container py-4">
+    <div class="d-flex flex-wrap gap-3 align-items-end justify-content-between mb-3">
+      <div>
+        <h1 class="h3 fw-bold mb-1">Study Sessions</h1>
+        <div class="text-muted">Find a group, or host one for your class.</div>
+      </div>
+      <% if (user) { %>
+        <a class="btn btn-primary" href="/sessions/new">New Session</a>
+      <% } else { %>
+        <a class="btn btn-primary" href="/signup">Sign up to join</a>
+      <% } %>
+    </div>
+
+    <div class="card shadow-sm p-3 mb-3">
+      <div class="row g-2 align-items-end">
+        <div class="col-md-5">
+          <label class="form-label">Search</label>
+          <input id="searchBox" class="form-control" placeholder="Search title, course, location..." value="<%= q %>">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Day</label>
+          <input id="dayBox" class="form-control" type="date" value="<%= day %>">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Tag Filter</label>
+          <select id="tagSelect" class="form-select">
+            <option value="">All</option>
+            <% (allTags || []).forEach(t => { %>
+              <option value="<%= t %>" <%= selectedTag === t ? "selected" : "" %>><%= t %></option>
+            <% }) %>
+          </select>
+        </div>
+      </div>
+
+      <div class="mt-3 d-flex flex-wrap gap-2" id="tagChips">
+        <% (allTags || []).slice(0, 12).forEach(t => { %>
+          <button class="btn btn-sm btn-chip" data-tag="<%= t %>"><%= t %></button>
+        <% }) %>
+        <% if ((allTags || []).length > 12) { %>
+          <span class="text-muted small align-self-center">+ <%= (allTags.length - 12) %> more</span>
+        <% } %>
+      </div>
+    </div>
+
+    <div class="row g-3" id="cards">
+      <% if (!sessions.length) { %>
+        <div class="col-12">
+          <div class="alert alert-info" id="emptyState">No sessions found. Try clearing filters.</div>
+        </div>
+      <% } %>
+
+      <% sessions.forEach(s => { %>
+        <div class="col-12 col-md-6 col-lg-4 session-card"
+             data-title="<%= (s.title + ' ' + s.course + ' ' + s.location + ' ' + (s.notes||'')).toLowerCase() %>"
+             data-tags="<%= (s.tags || []).join(' ').toLowerCase() %>"
+             data-day="<%= (s.starts_at || '').slice(0,10) %>">
+          <div class="card h-100 shadow-sm hover-lift">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-start gap-2">
+                <div>
+                  <div class="text-muted small"><%= s.course %></div>
+                  <h2 class="h5 fw-bold mb-1"><%= s.title %></h2>
+                </div>
+                <span class="badge text-bg-light border"><%= s.attendeeCount %>/<%= s.capacity %></span>
+              </div>
+
+              <% if (s.tags && s.tags.length) { %>
+                <div class="mt-2">
+                  <% s.tags.slice(0, 6).forEach(t => { %>
+                    <span class="badge rounded-pill text-bg-light border me-1"><%= t %></span>
+                  <% }) %>
+                </div>
+              <% } %>
+
+              <div class="mt-3 d-flex flex-column gap-1 small">
+                <div><span class="text-muted">When:</span> <strong><%= new Date(s.starts_at).toLocaleString() %></strong></div>
+                <div><span class="text-muted">Where:</span> <strong><%= s.location %></strong></div>
+                <div><span class="text-muted">Duration:</span> <strong><%= s.duration_min %> min</strong></div>
+              </div>
+
+              <% if (s.notes) { %>
+                <div class="mt-3 text-muted small clamp-3"><%= s.notes %></div>
+              <% } %>
+            </div>
+
+            <div class="card-footer bg-white border-0 pt-0 pb-3 px-3 d-flex gap-2">
+              <a class="btn btn-outline-primary flex-grow-1" href="/sessions/<%= s.id %>">View</a>
+              <% if (user) { %>
+                <% if (s.isAttending) { %>
+                  <button class="btn btn-outline-secondary btn-leave" data-id="<%= s.id %>">Leave</button>
+                <% } else { %>
+                  <button class="btn btn-primary btn-join" data-id="<%= s.id %>" <%= s.attendeeCount >= s.capacity ? "disabled" : "" %>>
+                    Join
+                  </button>
+                <% } %>
+              <% } %>
+            </div>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  </main>
+
+  <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toastArea"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/app.js"></script>
+</body>
+</html>

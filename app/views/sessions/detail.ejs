@@ -1,0 +1,104 @@
+<!doctype html>
+<html>
+<head><%- include('../partials/head') %><title>Session</title></head>
+<body>
+  <%- include('../partials/nav', { user }) %>
+
+  <main class="container py-4" style="max-width: 980px;">
+    <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
+      <div>
+        <div class="text-muted small"><%= session.course %></div>
+        <h1 class="h3 fw-bold mb-1"><%= session.title %></h1>
+        <div class="text-muted">Starts <strong><%= new Date(session.starts_at).toLocaleString() %></strong> · <%= session.duration_min %> min</div>
+      </div>
+
+      <div class="d-flex gap-2">
+        <% if (user && session.isOwner) { %>
+          <a class="btn btn-outline-primary" href="/sessions/<%= session.id %>/edit">Edit</a>
+          <button class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">Delete</button>
+        <% } %>
+        <a class="btn btn-outline-secondary" href="/sessions">Back</a>
+      </div>
+    </div>
+
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <div class="d-flex flex-wrap gap-3 align-items-center mb-2">
+          <span class="badge text-bg-light border"><strong id="count"><%= session.attendeeCount %></strong>/<%= session.capacity %> attendees</span>
+          <span class="badge text-bg-light border"><%= session.location %></span>
+        </div>
+
+        <% if (session.tags && session.tags.length) { %>
+          <div class="mb-3">
+            <% session.tags.forEach(t => { %>
+              <span class="badge rounded-pill text-bg-light border me-1"><%= t %></span>
+            <% }) %>
+          </div>
+        <% } %>
+
+        <% if (session.notes) { %>
+          <p class="text-muted"><%= session.notes %></p>
+        <% } %>
+
+        <div class="border-top pt-3 d-flex flex-wrap gap-2 align-items-center justify-content-between">
+          <div class="small text-muted">Host: <strong><%= session.owner_id %></strong></div>
+
+          <% if (user) { %>
+            <div class="d-flex gap-2">
+              <% if (session.isAttending) { %>
+                <button class="btn btn-outline-secondary" id="leaveBtn" data-id="<%= session.id %>">Leave</button>
+                <button class="btn btn-primary" id="joinBtn" data-id="<%= session.id %>" disabled>Joined</button>
+              <% } else { %>
+                <button class="btn btn-outline-secondary" id="leaveBtn" data-id="<%= session.id %>" style="display:none;">Leave</button>
+                <button class="btn btn-primary" id="joinBtn" data-id="<%= session.id %>" <%= session.attendeeCount >= session.capacity ? "disabled" : "" %>>
+                  Join
+                </button>
+              <% } %>
+            </div>
+          <% } else { %>
+            <a class="btn btn-primary" href="/login?next=/sessions/<%= session.id %>">Login to join</a>
+          <% } %>
+        </div>
+      </div>
+    </div>
+
+    <div class="card shadow-sm mt-3">
+      <div class="card-body">
+        <h2 class="h6 fw-bold">Attendees</h2>
+        <% if (!session.attendees.length) { %>
+          <div class="text-muted">No attendees yet.</div>
+        <% } else { %>
+          <div class="d-flex flex-wrap gap-2">
+            <% session.attendees.forEach(a => { %>
+              <span class="badge text-bg-light border"><%= a.name %></span>
+            <% }) %>
+          </div>
+        <% } %>
+      </div>
+    </div>
+  </main>
+
+  <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toastArea"></div>
+
+  <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Delete session?</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">This can’t be undone.</div>
+        <div class="modal-footer">
+          <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <form method="POST" action="/sessions/<%= session.id %>?_method=DELETE">
+            <button class="btn btn-danger" type="submit">Delete</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/app.js"></script>
+</body>
+</html>
